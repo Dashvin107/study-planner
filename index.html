@@ -551,7 +551,11 @@
     progressBar.style.width = pct + '%';
 
     /* Filter tasks based on active filter tab */
-    let visible = tasks;
+    let visible = tasks;visible.sort((a, b) => {
+  if (!a.dueDate) return 1;
+  if (!b.dueDate) return -1;
+  return new Date(a.dueDate) - new Date(b.dueDate);
+});
     if (filter === 'active') visible = tasks.filter(t => !t.done);
     if (filter === 'done')   visible = tasks.filter(t => t.done);
 
@@ -566,7 +570,10 @@
     }
 
     /* Build list items */
-    taskList.innerHTML = visible.map(task => `
+    taskList.innerHTML = visible.map(task => {
+  const isOverdue = task.dueDate && !task.done && new Date(task.dueDate) < new Date();
+
+  return `
       <li class="task-item ${task.done ? 'done' : ''}" data-id="${task.id}">
 
         <!-- Checkbox circle -->
@@ -578,13 +585,15 @@
         <div class="task-content">
           <div class="task-text">${escapeHtml(task.text)}</div>
           <span class="task-tag tag-${task.tag}">${task.tag}</span>
+          ${isOverdue ? `<div style="color:#e87e7e;font-size:11px;">⚠️ Overdue</div>` : ''}
         </div>
 
         <!-- Delete button -->
         <button class="del-btn" onclick="deleteTask('${task.id}')" aria-label="Delete task">✕</button>
 
       </li>
-    `).join('');
+    `;
+}).join('');
   }
 
   // ─────────────────────────────────────────────────────────
